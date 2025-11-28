@@ -1,0 +1,69 @@
+---
+- name: Generate a new token to access PHPIPAM API 
+  ansible.builtin.uri:
+    url: "{{ ipam_api_url }}/user/"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    method: POST
+    return_content: true
+    force_basic_auth: true
+    validate_certs: false
+  register: result_token
+
+- name: Collect token
+  ansible.builtin.set_fact:
+    ansible_token: "{{ result_token.json.data.token }}"
+
+- name: Get ID from subnet to reserve IP
+  ansible.builtin.uri:
+    url: "{{ ipam_api_url }}/subnets/search/{{ subnet_ipam }}"
+    method: GET
+    return_content: true
+    validate_certs: false
+    headers: 
+      token: "{{ ansible_token }}"
+  register: result_subnet
+
+- ansible.builtin.set_fact:
+    subnet_id: "{{ (result_subnet.json.data | map(attribute='id'))[0] }}"
+    section_id: "{{ (result_subnet.json.data | map(attribute='sectionId'))[0] }}"
+
+- name: Get section name from subnet
+  ansible.builtin.uri:
+    url: "{{ ipam_api_url }}/sections/{{ section_id }}"
+    method: GET
+    return_content: true
+    validate_certs: false
+    headers:
+      token: "{{ ansible_token }}"
+  register: result_section
+
+- ansible.builtin.set_fact:
+    section_name: "{{ result_section.json.data.name }}"
+
+- name: Get first free IP to register
+  ansible.builtin.uri:
+    url: "{{ ipam_api_url }}/subnets/{{ subnet_id }}/first_free"
+    method: GET
+    return_content: true
+    validate_certs: false
+    headers:
+      token: "{{ ansible_token }}"
+  register: first_ip_available
+
+- ansible.builtin.set_fact:
+    ip_reserved: "{{ first_ip_available.json.data }}"
+
+- name: Reserve an IP address
+  codeaffen.phpipam.address:
+    app_id: ansible
+    username: "{{ username }}"
+    password: "{{ password }}"
+    server_url: "{{ ipam_url }}"
+    address: "{{ ip_reserved }}"
+    section: "{{ section_name }}"
+    description: "IP Reserved to {{ servername }}"
+    subnet: "{{ subnet_ipam }}"
+    is_gateway: no
+    state: present
+    validate_certs: false

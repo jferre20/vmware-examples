@@ -1,0 +1,24 @@
+---
+#- hosts: bastion
+- hosts: localhost
+  gather_facts: false
+
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    ansible_host_key_checking: false
+
+  tasks:
+    - name: Create machine in vmware
+      include_role:
+        name: vmware
+        tasks_from: create_vm
+
+    - name: Reserve IP
+      include_role:
+        name: ipam
+        tasks_from: reserve_ip
+
+    - name: Configure IP and hostname
+      include_role:
+        name: customizations
+        tasks_from: configure_dns

@@ -1,0 +1,15 @@
+---
+provision_vm_hostname: 192.168.15.251
+provision_vm_username: administrator@jferre.local 
+provision_vm_password: Redhat@123
+provision_vm_datacenter: dc01.jferre.local 
+provision_vm_validate_certs: false
+provision_vm_state: "poweredon"
+provision_vm_disk:
+- size_gb: 30
+  type: thin
+  datastore: datastore1
+provision_vm_hardware:
+  memory_mb: 1024
+  num_cpus: 1
+provision_vm_wait_for_ip_address: true

@@ -1,0 +1,43 @@
+---
+- hosts: bastion
+  gather_facts: false
+
+  vars_files:
+    - vars/aap_credentials.yml
+
+  tasks:
+    - name: Get ID from all job templates
+      ansible.builtin.uri:
+        url: "http://{{ aap['controller'] }}/api/v2/job_templates?name__icontains=prd"
+        user: "{{ aap['user'] }}"
+        password: "{{ aap['password'] }}"
+        force_basic_auth: true
+        method: GET
+        validate_certs: false
+        return_content: true
+      register: job_templates_name
+
+    - debug:
+        var: job_templates_name.json.results | map(attribute='name')
+
+    - name: Create list with job templates
+      ansible.builtin.set_fact:
+        job_template_list: "{{ job_templates_name.json.results | map(attribute='name') }}"
+
+    - name: Manage notifications
+      ansible.controller.job_template:
+        controller_host: "https://{{ aap['controller'] }}"
+        controller_oauthtoken: "{{ aap['token'] }}"
+        name: "{{ item }}" 
+        notification_templates_error:
+          - "{{ notification_name }}" 
+        validate_certs: false
+      loop: "{{ job_template_list }}"
+      when: 'item.startswith("PRD-")'
+
+# Parameters to enable/disable notifications at templates.
+
+# notification_templates_approvals: - only permited at workflow_job_templates parameter
+# notification_templates_started:
+# notification_templates_success:
+# notification_templates_failure:

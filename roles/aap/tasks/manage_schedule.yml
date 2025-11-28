@@ -1,0 +1,37 @@
+---
+- name: Get ID from workflow
+  ansible.builtin.uri:
+    url: "http://{{ aap['controller'] }}/api/v2/workflow_job_templates/?name={{ workflow_name | replace(' ','%20') }}"
+    user: "{{ aap['user'] }}"
+    password: "{{ aap['password'] }}"
+    force_basic_auth: true
+    method: GET
+    validate_certs: false
+    return_content: true
+  register: workflow
+
+- set_fact:
+    workflow_id: "{{ workflow.json.results[0].id }}"
+
+- name: Get all schedules from workflow
+  ansible.builtin.uri:
+    url: "http://{{ aap['controller'] }}/api/v2/workflow_job_templates/{{ workflow_id }}/schedules"
+    user: "{{ aap['user'] }}"
+    password: "{{ aap['password'] }}"
+    force_basic_auth: true
+    method: GET
+    validate_certs: false
+    return_content: true
+  register: schd_templates
+
+- set_fact:
+    schedules_name: "{{ schd_templates.json.results | map(attribute='name') }}"
+
+- name: Disable schedules
+  ansible.controller.schedule:
+    controller_host: "https://{{ aap['controller'] }}"
+    controller_oauthtoken: "{{ aap['token'] }}"
+    name: "{{ item }}"
+    enabled: "{{ enable_schedule }}"
+    unified_job_template: "Get hostname and mysql version"
+  with_items: "{{ schedules_name }}"

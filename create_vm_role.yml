@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  gather_facts: true
+
+  vars_files:
+    - group_vars/vmware.yml
+
+  tasks:
+    - name: Provision a VM
+      ansible.builtin.import_role:
+        name: cloud.vmware_ops.provision_vm
+      vars:
+        provision_vm_template: "template-rhel8"
+        provision_vm_name: "{{ vm_name }}"
+        provision_vm_folder: "VMs"

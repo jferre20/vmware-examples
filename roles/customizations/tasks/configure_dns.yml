@@ -1,0 +1,31 @@
+---
+- name: Execute changes on server
+  delegate_to: "{{ vm_ip }}"
+  block:
+    - name: Set hostname
+      become: true
+      become_user: root
+      ansible.builtin.hostname:
+        name: "{{ servername }}"
+    
+    - name: Get network interface default
+      shell: "nmcli -t -f DEVICE c show --active | head -1"
+      register: nw_adapter
+    
+    - name: Set IP on server
+      community.general.nmcli:
+        type: ethernet
+        conn_name: "{{ nw_adapter.stdout }}"
+        ip4: '{{ ip_reserved }}/24'
+        gw4: '192.168.15.1'
+        state: present
+    
+    - name: Reboot machine
+      ansible.builtin.shell: "sleep 5 && reboot"
+      async: 1
+      poll: 0
+    
+- name: Wait for backup machine with new IP
+  wait_for:
+    host: "{{ ip_reserved }}"
+    port: 22

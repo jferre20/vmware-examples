@@ -1,0 +1,6 @@
+---
+vcenter:
+    hostname: 192.168.15.251
+    username: administrator@jferre.local
+    password: Redhat@123
+    datacenter: dc01.jferre.local

@@ -1,0 +1,6 @@
+---
+ipam_api_url: http://ipam.jferre.local/api/ansible
+ipam_url: http://ipam.jferre.local
+username: admin
+password: redhat123
+subnet_ipam: 192.168.15.0/24

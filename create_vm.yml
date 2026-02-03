@@ -17,6 +17,8 @@
       include_role:
         name: ipam
         tasks_from: reserve_ip
+      vars:
+        vm_name: "{{ servername }}"
 
     - name: Configure IP and hostname
       include_role:

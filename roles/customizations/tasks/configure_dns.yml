@@ -3,10 +3,7 @@
   delegate_to: "{{ vm_ip }}"
   block:
     - name: Set hostname
-      become: true
-      become_user: root
-      ansible.builtin.hostname:
-        name: "{{ servername }}"
+      ansible.builtin.shell: "hostnamectl set-hostname {{ servername }}"
     
     - name: Get network interface default
       shell: "nmcli -t -f DEVICE c show --active | head -1"

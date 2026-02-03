@@ -26,44 +26,50 @@
 
 - ansible.builtin.set_fact:
     subnet_id: "{{ (result_subnet.json.data | map(attribute='id'))[0] }}"
-    section_id: "{{ (result_subnet.json.data | map(attribute='sectionId'))[0] }}"
-
-- name: Get section name from subnet
+#    section_id: "{{ (result_subnet.json.data | map(attribute='sectionId'))[0] }}"
+#
+#- name: Get section name from subnet
+#  ansible.builtin.uri:
+#    url: "{{ ipam_api_url }}/sections/{{ section_id }}"
+#    method: GET
+#    return_content: true
+#    validate_certs: false
+#    headers:
+#      token: "{{ ansible_token }}"
+#  register: result_section
+#
+#- ansible.builtin.set_fact:
+#    section_name: "{{ result_section.json.data.name }}"
+#
+#- name: Get first free IP to register
+#  ansible.builtin.uri:
+#    url: "{{ ipam_api_url }}/subnets/{{ subnet_id }}/first_free"
+#    method: GET
+#    return_content: true
+#    validate_certs: false
+#    headers:
+#      token: "{{ ansible_token }}"
+#  register: first_ip_available
+#
+#- ansible.builtin.set_fact:
+#    ip_reserved: "{{ first_ip_available.json.data }}"
+#    
+- name: Reserve IP
   ansible.builtin.uri:
-    url: "{{ ipam_api_url }}/sections/{{ section_id }}"
-    method: GET
+    url: "{{ ipam_api_url }}/addresses/first_free/{{ subnet_id }}"
+    method: POST
     return_content: true
     validate_certs: false
-    headers:
+    status_code: 201 
+    headers: 
       token: "{{ ansible_token }}"
-  register: result_section
-
-- ansible.builtin.set_fact:
-    section_name: "{{ result_section.json.data.name }}"
-
-- name: Get first free IP to register
-  ansible.builtin.uri:
-    url: "{{ ipam_api_url }}/subnets/{{ subnet_id }}/first_free"
-    method: GET
-    return_content: true
-    validate_certs: false
-    headers:
-      token: "{{ ansible_token }}"
-  register: first_ip_available
-
-- ansible.builtin.set_fact:
-    ip_reserved: "{{ first_ip_available.json.data }}"
-
-- name: Reserve an IP address
-  codeaffen.phpipam.address:
-    app_id: ansible
-    username: "{{ username }}"
-    password: "{{ password }}"
-    server_url: "{{ ipam_url }}"
-    address: "{{ ip_reserved }}"
-    section: "{{ section_name }}"
-    description: "IP Reserved to {{ servername }}"
-    subnet: "{{ subnet_ipam }}"
-    is_gateway: no
-    state: present
-    validate_certs: false
+    body_format: json
+    body:
+      hostname: "{{ vm_name }}.jferre.local"
+      description: "IP Reserved to {{ vm_name }}.jferre.local"
+  register: new_ip
+  changed_when: new_ip.json.success == true
+ 
+- name: Get IP reserved
+  ansible.builtin.set_fact:
+    ip_reserved: "{{ new_ip.json.data }}"

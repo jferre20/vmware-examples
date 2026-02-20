@@ -1,0 +1,16 @@
+---
+- hosts: bastion-jferre.chiaret.to 
+  gather_facts: false
+  tasks:
+    - name: Gather guest vm info
+      vmware.vmware.guest_info:
+        #hostname: "vcsa.vmware.tamlab.rdu2.redhat.com"
+        hostname: "chiaretto-vcsa01.chiaret.to"
+        username: "joao@chiaretto.local"
+        password: "Redhat@123"
+        validate_certs: false
+        guest_name: "bastion-jferre"
+      register: vm_info
+
+    - ansible.builtin.debug:
+        var: vm_info

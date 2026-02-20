@@ -1,0 +1,39 @@
+---
+- hosts: bastion-jferre.chiaret.to 
+  gather_facts: false
+  tasks:
+    #- name: Add disk 
+    #  vmware.vmware.vm:
+    #    hostname: "chiaretto-vcsa01.chiaret.to"
+    #    username: "joao@chiaretto.local"
+    #    password: "Redhat@123"
+    #    name: "labsrv-jferre"
+    #    disks:
+    #      - size: 10gb
+    #        provisioning: thin
+    #        device_node: SCSI(1:1)
+    #    scsi_controllers:
+    #      - controller_type: lsilogic 
+    #        bus_number: 1
+    #    validate_certs: false
+    #  register: vm_info
+
+    - name: Add disk 
+      community.vmware.vmware_guest_disk:
+        hostname: "chiaretto-vcsa01.chiaret.to"
+        username: "joao@chiaretto.local"
+        password: "Redhat@123"
+        datacenter: CHIARETTO
+        name: "labsrv-jferre"
+        disk:
+          - size_gb: 5
+            type: thin
+            datastore: M2B 
+            state: present
+            scsi_controller: 1
+            unit_number: 1
+        validate_certs: false
+      register: vm_info
+
+    - ansible.builtin.debug:
+        var: vm_info

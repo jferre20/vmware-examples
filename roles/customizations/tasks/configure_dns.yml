@@ -14,7 +14,7 @@
         type: ethernet
         conn_name: "{{ nw_adapter.stdout }}"
         ip4: '{{ ip_reserved }}/24'
-        gw4: '192.168.15.1'
+        gw4: '192.168.122.1'
         state: present
     
     - name: Reboot machine

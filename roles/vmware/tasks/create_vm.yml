@@ -16,3 +16,6 @@
 - name: Get IP Address after creation
   set_fact:
     vm_ip: "{{ create_vm.instance.hw_eth0.ipaddresses[0] }}"
+
+- debug:
+    var: vm_ip

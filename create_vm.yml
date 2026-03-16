@@ -16,7 +16,6 @@
     - name: Reserve IP
       include_role:
         name: ipam
-        tasks_from: reserve_ip
       vars:
         vm_name: "{{ servername }}"
 

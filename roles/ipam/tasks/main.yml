@@ -1,0 +1,30 @@
+---
+- name: Generate a new token to access PHPIPAM API 
+  ansible.builtin.uri:
+    url: "{{ ipam_api_url }}/user/"
+    user: "{{ ipam_username }}"
+    password: "{{ ipam_password }}"
+    method: POST
+    return_content: true
+    force_basic_auth: true
+    validate_certs: false
+  register: result_token
+
+- name: Collect token
+  ansible.builtin.set_fact:
+    ansible_token: "{{ result_token.json.data.token }}"
+
+- name: Get ID from subnet
+  ansible.builtin.uri:
+    url: "{{ ipam_api_url }}/subnets/search/{{ subnet_ipam }}"
+    method: GET
+    return_content: true
+    validate_certs: false
+    headers: 
+      token: "{{ ansible_token }}"
+  register: result_subnet
+
+- ansible.builtin.set_fact:
+    subnet_id: "{{ (result_subnet.json.data | map(attribute='id'))[0] }}"
+
+- include_tasks: reserve_ip.yml 

@@ -1,0 +1,16 @@
+---
+- name: Get IP to remove the reservation
+  ansible.builtin.shell: "nslookup {{ vm_name }} 192.168.122.148 | tail -2 | head -1"
+  register: vm_ip
+
+- set_fact:
+    ip_to_release: "{{ (vm_ip.stdout | split(':'))[1] | replace(' ','') }}"
+
+- name: Release IP
+  ansible.builtin.uri:
+    url: "{{ ipam_api_url }}/addresses/{{ ip_to_release }}/{{ subnet_id }}"
+    method: DELETE
+    return_content: true
+    validate_certs: false
+    headers: 
+      token: "{{ ansible_token }}"
